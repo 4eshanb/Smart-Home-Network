@@ -12,6 +12,7 @@ if __name__ == '__main__':
     # create the server socket
     #  defaults family=AF_INET, type=SOCK_STREAM, proto=0, filno=None
     serversoc = socket.socket()
+    serversoc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     
     # bind to local host:5000
     serversoc.bind(("localhost",50000))

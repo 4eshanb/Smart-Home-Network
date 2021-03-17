@@ -157,7 +157,8 @@ class SHServer(object):
     
     def _doDisplay(self):
         try:
-            menu = self._home.getLights()
+            menu = self._home.getStatuses()
+            
             menu.append("Enter choice number:")
             menu.append('99. Return to Main')
             choices = {'99': 'main'}
@@ -180,21 +181,44 @@ class SHServer(object):
     
     def _doChange(self):
         try:
-            menu = self._home.getLights()
-            menu.append("Enter choice number:")
-            menu.append('99. Return to Main')
-            choices = self._home.getDLights()
+            menu = self._home.getStatuses()
+            menu.append('  99. Return to Main')
+            choices = self._home.getDeviceDict()
+            #print(choices)
             ms = Message()
             ms.setType('MENU')
             ms.addParam('pnum','1')
             ms.addParam('1','choice')
+            ms.addLine("Enter choice number:")
             ms.addLines(menu)
             
             self._shp.putMessage(ms)
             mr = self._shp.getMessage()
             choice = mr.getParam('choice')
             if choice in choices:
-                self._home.toggleLightState(choices[choice])
+                if 'Light' in choices[choice]:
+                    self._home.toggleLightState(choices[choice])
+                elif choices[choice] == 'House Alarm':
+                    #print("here")
+                    ms.reset()
+                    ms.setType('PASS')
+                    ms.addParam('pnum','1')
+                    ms.addParam('1','pass')
+                    ms.addLine("Enter Alarm 4-digit pin:")
+                    self._shp.putMessage(ms)
+                    mr = self._shp.getMessage()
+                    passw = mr.getParam('pass')
+                    #print(passw)
+                    if passw == self._home.getAlarmPassword():
+                        self._home.toggleAlarm(passw)
+                    else:
+                        ms.reset()
+                        ms.setType('ERROR')
+                        ms.addParam('pnum','1')
+                        ms.addParam('1','error')
+                        ms.addLine("Incorrect pin")
+                        self._shp.putMessage(ms)
+                    
                 self._mLevel = 'change'
             else:
                 self._mLevel = 'main'

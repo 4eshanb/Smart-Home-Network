@@ -10,7 +10,9 @@ class SHome(object):
     '''
     classdocs
     '''
-    DSTATE = Enum('DSTATE', {'ON': 'ON', 'OFF': 'OFF' })
+    DSTATE = Enum('DSTATE', {'ON': 'ON', 'OFF': 'OFF' , 'DIM': 'DIM', 'BRIGHT': 'BRIGHT'})
+    ALARMSTATE = Enum('ALARMSTATE', {'ARMED': 'ARMED', 'DISARMED': 'DISARMED'})
+
     CRLF = '\r\n'
 
     def __init__(self):
@@ -22,9 +24,14 @@ class SHome(object):
         self._users = dict()
         self._lights = dict()
         self._devices = list()
+        self._rooms = dict()
+        self._alarm = {'House Alarm': SHome.ALARMSTATE.DISARMED}
+        self._alarmPassword = '1234'
+        self._devices.append('House Alarm')
+
         
     def __str__(self) -> str:
-        return (SHome.CRLF.join(self.getLights()))
+        return (SHome.CRLF.join(self.getDevices()))
     
     def mkDummy(self):
         self.addLight('Light 1')
@@ -32,7 +39,39 @@ class SHome(object):
         self.addLight('Light 3')
         self.addLight('Light 4')
         self.addLight('Light 5')
+
+    def getStatuses(self) -> list:
+        ret = []
+        i = 1
+        for alarm in self._alarm:
+            ret.append('{:>3}. {} is {}'.format(i,alarm,self._alarm[alarm].value))
+            i += 1
+        for light in self._lights:
+            ret.append('{:>3}. {} is {}'.format(i,light,self._lights[light].value))
+            i += 1
+        return ret
+
+    def armAlarm(self, alarmPass: str):
+        if alarmPass == self._alarmPassword:
+            self._alarm['House Alarm'] = 'ARMED'
     
+    def disarmAlarm(self, alarmPass: str):
+        if alarmPass == self._alarmPassword:
+            self._alarm['House Alarm'] = 'DISARMED'
+
+    def getAlarmPassword(self):
+        return self._alarmPassword
+
+    def toggleAlarm(self, alarmPass: str):
+        if alarmPass == self._alarmPassword:
+            alarm = list(self._alarm.keys())[0]
+            print(self._alarm[alarm] == SHome.ALARMSTATE.DISARMED)
+            if self._alarm[alarm] == SHome.ALARMSTATE.DISARMED:
+                self._alarm[alarm] = SHome.ALARMSTATE.ARMED
+                #print(self._alarm)
+            else:
+                self._alarm[alarm] = SHome.ALARMSTATE.DISARMED
+
     def addUser(self, u: str, p: str):
         self._users[u] = p
 
@@ -45,7 +84,7 @@ class SHome(object):
         return ret
     
     def getDevices(self):
-        print("in home getDevices")
+        #print("in home getDevices")
         ret = []
         i = 1
         for dev in self._devices:
@@ -76,9 +115,12 @@ class SHome(object):
             i += 1
         return ret
     
-    def getDLights(self) -> dict:
+    def getDeviceDict(self) -> dict:
         ret = {}
         i = 1
+        for alarm in self._alarm:
+            ret[str(i)] = alarm
+            i += 1
         for light in self._lights:
             ret[str(i)] = light
             i += 1
