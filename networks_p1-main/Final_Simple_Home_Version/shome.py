@@ -19,7 +19,9 @@ class SHome(object):
         '''
         self._username = 'admin'
         self._password = 'welcome'
+        self._users = dict()
         self._lights = dict()
+        self._devices = list()
         
     def __str__(self) -> str:
         return (SHome.CRLF.join(self.getLights()))
@@ -30,14 +32,29 @@ class SHome(object):
         self.addLight('Light 3')
         self.addLight('Light 4')
         self.addLight('Light 5')
-        
+    
+    def addUser(self, u: str, p: str):
+        self._users[u] = p
+
     def checkLogin(self, u: str, p: str) -> bool:
         ret = False
-        if u == self._username and p == self._password:
+        if u not in self._users:
+            return False
+        if p == self._users[u]:
             ret = True
         return ret
-        
+    
+    def getDevices(self):
+        print("in home getDevices")
+        ret = []
+        i = 1
+        for dev in self._devices:
+            ret.append('{:>3}. {}'.format(i,dev))
+            i += 1
+        return ret
+
     def addLight(self, lname: str):
+        self._devices.append(lname)
         self._lights[lname] = SHome.DSTATE.OFF
     
     def setLightState(self, lname: str, state: str):

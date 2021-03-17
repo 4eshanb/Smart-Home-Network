@@ -45,10 +45,11 @@ class Message(object):
         self._type = Message.MCMDS[mtype]
         
     def getType(self) -> str:
-        return self._type.value()
+        return self._type.value
     
     def addParam(self, name: str, value: str):
-        self._params[name] = value;
+        #print(self._params)
+        self._params[name] = value
         
     def getParam(self, name: str) -> str:
         return self._params[name]

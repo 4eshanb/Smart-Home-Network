@@ -59,12 +59,15 @@ class SHClient(object):
             while True:
                 mr = self._shp.getMessage()
                 print(mr.getBody())
-                
+                if mr.getType() == 'ERROR':
+                    continue
+                #print("Request")
                 user = input('-->')
                 ms.reset()
                 ms.setType('CHOICE')
                 ms.addParam('pnum','1')
                 ms.addParam(mr.getParam('1'), user)
+                #print(ms)
                 self._shp.putMessage(ms)
         except Exception:
             self._shp.close()
