@@ -5,6 +5,7 @@ Created on Feb 23, 2021
 '''
 from enum import Enum
 from pickle import TRUE
+import random
 
 class SHome(object):
     '''
@@ -12,6 +13,7 @@ class SHome(object):
     '''
     DSTATE = Enum('DSTATE', {'ON': 'ON', 'OFF': 'OFF' , 'DIM': 'DIM', 'BRIGHT': 'BRIGHT'})
     ALARMSTATE = Enum('ALARMSTATE', {'ARMED': 'ARMED', 'DISARMED': 'DISARMED'})
+    LOCKSTATE = Enum('LOCKSTATE', {'OPEN': 'OPEN', 'LOCKED': 'LOCKED'})
 
     CRLF = '\r\n'
 
@@ -25,6 +27,7 @@ class SHome(object):
         self._lights = dict()
         self._devices = list()
         self._rooms = dict()
+        self._locks = dict()
         self._alarm = {'House Alarm': SHome.ALARMSTATE.DISARMED}
         self._alarmPassword = '1234'
         self._devices.append('House Alarm')
@@ -39,6 +42,11 @@ class SHome(object):
         self.addLight('Light 3')
         self.addLight('Light 4')
         self.addLight('Light 5')
+        self.addLock("Lock 1", [random.randint(1000,9999) for i in range(5)])
+        self.addLock("Lock 2", [random.randint(1000,9999) for i in range(5)])
+        self.addLock("Lock 3", [random.randint(1000,9999) for i in range(5)])
+        self.addLock("Lock 4", [random.randint(1000,9999) for i in range(5)])
+        self._devices.append(self._locks)
 
     def getStatuses(self) -> list:
         ret = []
@@ -49,15 +57,15 @@ class SHome(object):
         for light in self._lights:
             ret.append('{:>3}. {} is {}'.format(i,light,self._lights[light].value))
             i += 1
+        for lock in self._locks:
+            print(self._locks[lock][1])
+            ret.append('{:>3}. {} is {}'.format(i,light,self._locks[lock][0].value))
+            i += 1
         return ret
 
-    def armAlarm(self, alarmPass: str):
-        if alarmPass == self._alarmPassword:
-            self._alarm['House Alarm'] = 'ARMED'
-    
-    def disarmAlarm(self, alarmPass: str):
-        if alarmPass == self._alarmPassword:
-            self._alarm['House Alarm'] = 'DISARMED'
+    def addLock(self, lockName: str, pin_list: list):
+        self._locks[lockName] = [SHome.LOCKSTATE.LOCKED, pin_list]
+        
 
     def getAlarmPassword(self):
         return self._alarmPassword
@@ -65,12 +73,24 @@ class SHome(object):
     def toggleAlarm(self, alarmPass: str):
         if alarmPass == self._alarmPassword:
             alarm = list(self._alarm.keys())[0]
-            print(self._alarm[alarm] == SHome.ALARMSTATE.DISARMED)
+            #print(self._alarm[alarm] == SHome.ALARMSTATE.DISARMED)
             if self._alarm[alarm] == SHome.ALARMSTATE.DISARMED:
                 self._alarm[alarm] = SHome.ALARMSTATE.ARMED
                 #print(self._alarm)
             else:
                 self._alarm[alarm] = SHome.ALARMSTATE.DISARMED
+
+    def getLockPasswordList(self, lockName: str):
+        return self._locks[lockName][1]
+
+    def toggleLock(self, lockName: str, lockPass: int):
+        print("before if")
+        if lockPass in self._locks[lockName][1]:
+            print("before if")
+            if self._locks[lockName][0] == SHome.LOCKSTATE.LOCKED:
+                self._locks[lockName][0] = SHome.LOCKSTATE.OPEN
+            else:
+                self._locks[lockName][0] = SHome.LOCKSTATE.LOCKED
 
     def addUser(self, u: str, p: str):
         self._users[u] = p
@@ -88,8 +108,13 @@ class SHome(object):
         ret = []
         i = 1
         for dev in self._devices:
-            ret.append('{:>3}. {}'.format(i,dev))
-            i += 1
+            if isinstance(dev, dict):
+                for item in dev:
+                    ret.append('{:>3}. {}'.format(i,item))
+                    i += 1
+            else:
+                ret.append('{:>3}. {}'.format(i,dev))
+                i += 1
         return ret
 
     def addLight(self, lname: str):
@@ -123,6 +148,9 @@ class SHome(object):
             i += 1
         for light in self._lights:
             ret[str(i)] = light
+            i += 1
+        for lock in self._locks:
+            ret[str(i)] = lock
             i += 1
         return ret
     

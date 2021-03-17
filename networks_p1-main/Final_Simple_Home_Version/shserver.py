@@ -7,6 +7,7 @@ Created on Feb 19, 2021
 from message import Message
 from shprotocol import SHProtocol
 from shome import SHome
+import time
 
 class SHServer(object):
     '''
@@ -51,6 +52,7 @@ class SHServer(object):
                     ms.addParam('1','error')
                     ms.addLine("Username can't be blank")
                     self._shp.putMessage(ms)
+                    time.sleep(1)
                     continue
             
 
@@ -77,6 +79,7 @@ class SHServer(object):
                     ms.addParam('1','error')
                     ms.addLine("Password can't be blank")
                     self._shp.putMessage(ms)
+                    time.sleep(1)
                     continue
                 
                 self._home.addUser(user, passw)
@@ -134,7 +137,7 @@ class SHServer(object):
             menu = self._home.getDevices()
             #print("here")
             menu.append("Enter choice number:")
-            menu.append('99. Return to Main')
+            menu.append('{:>3}. Return to Main'.format(99))
             choices = {'99': 'main'}
             ms = Message()
             ms.setType('MENU')
@@ -160,7 +163,7 @@ class SHServer(object):
             menu = self._home.getStatuses()
             
             menu.append("Enter choice number:")
-            menu.append('99. Return to Main')
+            menu.append('{:>3}. Return to Main'.format(99))
             choices = {'99': 'main'}
             ms = Message()
             ms.setType('MENU')
@@ -182,7 +185,7 @@ class SHServer(object):
     def _doChange(self):
         try:
             menu = self._home.getStatuses()
-            menu.append('  99. Return to Main')
+            menu.append('{:>3}. Return to Main'.format(99))
             choices = self._home.getDeviceDict()
             #print(choices)
             ms = Message()
@@ -198,6 +201,7 @@ class SHServer(object):
             if choice in choices:
                 if 'Light' in choices[choice]:
                     self._home.toggleLightState(choices[choice])
+                    
                 elif choices[choice] == 'House Alarm':
                     #print("here")
                     ms.reset()
@@ -218,6 +222,28 @@ class SHServer(object):
                         ms.addParam('1','error')
                         ms.addLine("Incorrect pin")
                         self._shp.putMessage(ms)
+                        time.sleep(1)
+
+                elif 'Lock' in choices[choice]:
+                    ms.reset()
+                    ms.setType('PASS')
+                    ms.addParam('pnum','1')
+                    ms.addParam('1','pass')
+                    ms.addLine("Enter Lock 4-digit pin:")
+                    self._shp.putMessage(ms)
+                    mr = self._shp.getMessage()
+                    passw = int(mr.getParam('pass'))
+                    lock = choices[choice]
+                    if passw in self._home.getLockPasswordList(lock):
+                        self._home.toggleLock(lock, passw)
+                    else:
+                        ms.reset()
+                        ms.setType('ERROR')
+                        ms.addParam('pnum','1')
+                        ms.addParam('1','error')
+                        ms.addLine("Incorrect pin")
+                        self._shp.putMessage(ms)
+                        time.sleep(1)
                     
                 self._mLevel = 'change'
             else:
