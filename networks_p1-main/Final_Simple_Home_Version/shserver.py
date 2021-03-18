@@ -1,8 +1,3 @@
-'''
-Created on Feb 19, 2021
-
-@author: nigel
-'''
 
 from message import Message
 from shprotocol import SHProtocol
@@ -82,7 +77,7 @@ class SHServer(object):
                     time.sleep(1)
                     continue
                 
-                self._home.addUser(user, passw)
+                #self._home.addUser(user, passw)
 
                 self._login = self._home.checkLogin(user, passw)
                 count = count + 1
@@ -133,9 +128,7 @@ class SHServer(object):
     def _doListDevices(self):
         print("list devices")
         try:
-            print("here")
             menu = self._home.getDevices()
-            #print("here")
             menu.append("Enter choice number:")
             menu.append('{:>3}. Return to Main'.format(99))
             choices = {'99': 'main'}
@@ -160,7 +153,9 @@ class SHServer(object):
     
     def _doDisplay(self):
         try:
+            print("before get status")
             menu = self._home.getStatuses()
+            print("after get status")
             
             menu.append("Enter choice number:")
             menu.append('{:>3}. Return to Main'.format(99))
@@ -200,8 +195,43 @@ class SHServer(object):
             choice = mr.getParam('choice')
             if choice in choices:
                 if 'Light' in choices[choice]:
-                    self._home.toggleLightState(choices[choice])
-                    
+                    menu = self._home.getLightOptions(choices[choice])
+                    options = self._home.getLightOptionsDict(choices[choice])
+                    ms.setType('MENU')
+                    ms.addParam('pnum','1')
+                    ms.addParam('1','choice')
+                    ms.addLine("Enter choice number:")
+                    ms.addLines(menu)
+                    self._shp.putMessage(ms)
+                    mr = self._shp.getMessage()
+                    opt = mr.getParam('choice')
+            
+                    if opt in options:
+                        print("here", options[opt])
+                        if options[opt] == 'ON' or options[opt] == 'OFF':
+                            #print("here", options[opt])
+                            self._home.toggleLightState(choices[choice])
+                        elif options[opt] == 'BRIGHT' or options[opt] == 'DIMMED':
+                            self._home.toggleLightDimState(choices[choice])
+                        else: 
+                            ms.reset()
+                            menu = self._home.lightColorOptions()
+                            colorOptions = self._home.getLightColorOptionsDict()
+                            ms.setType('MENU')
+                            ms.addParam('pnum','1')
+                            ms.addParam('1','choice')
+                            ms.addLine("Enter choice number:")
+                            ms.addLines(menu)
+                            self._shp.putMessage(ms)
+                            mr = self._shp.getMessage()
+                            colorOpt = mr.getParam('choice')
+                            if colorOpt in colorOptions:
+                                self._home.toggleLightColor(choices[choice], colorOptions[colorOpt])
+
+                        self._mLevel = 'change'
+                    else:
+                        self._mLevel = 'main'
+
                 elif choices[choice] == 'House Alarm':
                     #print("here")
                     ms.reset()
