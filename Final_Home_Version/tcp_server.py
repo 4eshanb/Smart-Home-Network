@@ -1,11 +1,15 @@
-import socket
 
-if __name__ == "__main__":
+import socket
+from shprotocol import SHProtocol
+from shserver import SHServer
+
+if __name__ == '__main__':
     # create the server socket
     #  defaults family=AF_INET, type=SOCK_STREAM, proto=0, filno=None
     serversoc = socket.socket()
+    serversoc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     
-    # bind to local host:50000
+    # bind to local host:5000
     serversoc.bind(("localhost",50000))
                    
     # make passive with backlog=5
@@ -19,11 +23,12 @@ if __name__ == "__main__":
         commsoc, raddr = serversoc.accept()
         
         # run the application protocol
-        
+        shp = SHProtocol(commsoc)
+        shs = SHServer(shp)
+        shs.run()
         
         # close the comm socket
         commsoc.close()
     
     # close the server socket
     serversoc.close()
-    

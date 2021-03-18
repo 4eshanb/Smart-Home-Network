@@ -1,11 +1,5 @@
-'''
-Created on Feb 17, 2021
-
-@author: nigel
-'''
 
 from enum import Enum
-
 
 class Message(object):
     '''
@@ -35,14 +29,22 @@ class Message(object):
         '''
         return self.marshal()
     
+    def reset(self):
+        self._type = Message.MCMDS.START
+        self._params.clear()
+        self._params = {'lines': '0'}
+        self._body.clear()
+        self._bodyLines = 0
+    
     def setType(self, mtype: str):
         self._type = Message.MCMDS[mtype]
         
     def getType(self) -> str:
-        return self._type.value()
+        return self._type.value
     
     def addParam(self, name: str, value: str):
-        self._params[name] = value;
+        #print(self._params)
+        self._params[name] = value
         
     def getParam(self, name: str) -> str:
         return self._params[name]
@@ -67,11 +69,10 @@ class Message(object):
         value.append(params)
         if len(self._body) > 0:
             value += self._body
-        return Message.CRLF.join(value)
+        return '{}{}'.format(Message.CRLF.join(value),Message.CRLF)
     
     def unmarshal(self, value: str):
-        self._params.clear()
-        self._body.clear()
+        self.reset()
         lines = value.split(Message.CRLF)
         self._type = Message.MCMDS[lines[0]]
         params = lines[1].split(Message.PJOIN)
